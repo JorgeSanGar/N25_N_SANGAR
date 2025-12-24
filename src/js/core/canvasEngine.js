@@ -1,18 +1,51 @@
 import { stateManager } from './stateManager.js';
-import { windowShape, windowCenter, windowWidthRatio } from './windowConfig.js';
+import { windowPoints, curveControl, windowCenter, maxChars } from './windowConfig.js';
 
 export class CanvasEngine {
     constructor(canvasId) {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.isDrawing = false;
+        this.noisePattern = null;
+        this.bgImage = null; // Para el efecto blur
 
         this.init();
     }
 
     init() {
+        // Pre-generar ruido
+        this.generateNoise();
+
+        // Cargar imagen para el efecto blur interno
+        const img = new Image();
+        img.src = '/assets/images/background.png';
+        img.onload = () => {
+            this.bgImage = img;
+            this.resize();
+        };
+
         window.addEventListener('resize', () => this.resize());
         this.initDrawingEvents();
+    }
+
+    generateNoise() {
+        const noiseCanvas = document.createElement('canvas');
+        noiseCanvas.width = 200;
+        noiseCanvas.height = 200;
+        const nCtx = noiseCanvas.getContext('2d');
+
+        const idata = nCtx.createImageData(200, 200);
+        const buffer32 = new Uint32Array(idata.data.buffer);
+        const len = buffer32.length;
+
+        for (let i = 0; i < len; i++) {
+            if (Math.random() < 0.5) {
+                // Blanco con alpha muy bajo
+                buffer32[i] = 0x10ffffff;
+            }
+        }
+        nCtx.putImageData(idata, 0, 0);
+        this.noisePattern = this.ctx.createPattern(noiseCanvas, 'repeat');
     }
 
     resize() {
@@ -28,7 +61,12 @@ export class CanvasEngine {
         const width = this.canvas.width;
         const height = this.canvas.height;
         const ctx = this.ctx;
-        const message = stateManager.getMessage();
+        let message = stateManager.getMessage();
+
+        // Truncar texto si es muy largo
+        if (message.length > maxChars) {
+            message = message.substring(0, maxChars) + "...";
+        }
 
         // 1. Limpiar
         ctx.clearRect(0, 0, width, height);
@@ -39,76 +77,121 @@ export class CanvasEngine {
         this.defineWindowPath(ctx, width, height);
         ctx.clip();
 
-        // 3. FONDO DE VAHO REALISTA
-        // Usamos un gradiente radial para simular condensación natural (más densa en el centro/abajo)
-        const gradient = ctx.createRadialGradient(
-            width * 0.5, height * 0.8, 10,
-            width * 0.5, height * 0.4, width * 0.8
-        );
-        gradient.addColorStop(0, 'rgba(220, 230, 255, 0.85)'); // Centro más blanco
-        gradient.addColorStop(1, 'rgba(200, 215, 230, 0.65)'); // Bordes más transparentes
+        // 3. CAPA 1: FONDO DESENFOCADO (Simulación de refracción)
+        // Dibujamos la imagen de fondo pero desenfocada DENTRO del cristal
+        if (this.bgImage) {
+            ctx.filter = 'blur(6px)';
+            // Calcular ratio para "cover"
+            const hRatio = width / this.bgImage.width;
+            const vRatio = height / this.bgImage.height;
+            const ratio = Math.max(hRatio, vRatio);
+            const centerShift_x = (width - this.bgImage.width * ratio) / 2;
+            const centerShift_y = (height - this.bgImage.height * ratio) / 2;
 
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, height);
-
-        // 4. TEXTO (Destination-out para borrar el vaho)
-        ctx.globalCompositeOperation = 'destination-out';
-
-        // Lógica de AUTO-FIT (Ajuste dinámico de fuente)
-        const maxTextWidth = width * windowWidthRatio;
-        let fontSize = 120; // Empezar grande
-        ctx.font = `${fontSize}px 'Gochi Hand', cursive`;
-
-        // Reducir fuente hasta que quepa
-        while (ctx.measureText(message).width > maxTextWidth && fontSize > 20) {
-            fontSize -= 5;
-            ctx.font = `${fontSize}px 'Gochi Hand', cursive`;
+            ctx.drawImage(this.bgImage,
+                0, 0, this.bgImage.width, this.bgImage.height,
+                centerShift_x, centerShift_y, this.bgImage.width * ratio, this.bgImage.height * ratio
+            );
+            ctx.filter = 'none'; // Reset filter
         }
 
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        // 4. CAPA 2: TINTE DE VAHO (Blanco frío)
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(220, 230, 240, 0.4)';
+        ctx.fillRect(0, 0, width, height);
 
-        // Efecto de dedo (borde suave)
-        ctx.shadowBlur = 15;
+        // 5. CAPA 3: RUIDO (Gotitas)
+        if (this.noisePattern) {
+            ctx.fillStyle = this.noisePattern;
+            ctx.globalAlpha = 0.5;
+            ctx.fillRect(0, 0, width, height);
+            ctx.globalAlpha = 1.0;
+        }
+
+        // 6. CAPA 4: TEXTO (Goma de borrar)
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.shadowBlur = 10; // Borde suave
         ctx.shadowColor = 'rgba(0,0,0,1)';
 
-        // Posicionar y rotar
-        const textX = width * windowCenter.x;
-        const textY = height * windowCenter.y;
+        this.drawFittedText(ctx, message, width, height);
 
-        ctx.save();
-        ctx.translate(textX, textY);
-        ctx.rotate(-4 * Math.PI / 180); // Rotación sutil
-        ctx.fillText(message, 0, 0);
         ctx.restore();
 
-        // 5. Borde de condensación (Vignette interna)
-        // Dibujamos un borde suave interior para dar volumen al cristal
+        // 7. Borde sutil del cristal (Brillo)
+        ctx.save();
         ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.lineWidth = 15;
-        ctx.filter = 'blur(8px)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 2;
         this.defineWindowPath(ctx, width, height);
         ctx.stroke();
-        ctx.filter = 'none';
-
-        // Mantenemos el clip activo para que el usuario solo pueda dibujar dentro
-        // No hacemos restore() del clip principal
+        ctx.restore();
     }
 
     defineWindowPath(ctx, w, h) {
         ctx.beginPath();
-        const points = windowShape;
-        ctx.moveTo(points[0].x * w, points[0].y * h);
+        const p = windowPoints;
+        const c = curveControl;
 
-        // Usamos curvas cuadráticas para suavizar las esquinas si es necesario,
-        // pero con los puntos definidos, líneas rectas funcionan bien para el polígono.
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x * w, points[i].y * h);
-        }
+        ctx.moveTo(p.tl.x * w, p.tl.y * h);
+
+        // Curva Superior
+        ctx.quadraticCurveTo(
+            c.top.x * w, c.top.y * h,
+            p.tr.x * w, p.tr.y * h
+        );
+
+        // Lado Derecho (Recto)
+        ctx.lineTo(p.br.x * w, p.br.y * h);
+
+        // Curva Inferior
+        ctx.quadraticCurveTo(
+            c.bottom.x * w, c.bottom.y * h,
+            p.bl.x * w, p.bl.y * h
+        );
 
         ctx.closePath();
+    }
+
+    drawFittedText(ctx, text, w, h) {
+        // Configuración inicial
+        let fontSize = 100;
+        const minFontSize = 20;
+        const maxW = (windowPoints.tr.x - windowPoints.tl.x) * w * 0.8; // 80% del ancho de ventana
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Función recursiva simulada con while
+        ctx.font = `${fontSize}px 'Gochi Hand', cursive`;
+
+        // 1. Ajuste de tamaño
+        while (ctx.measureText(text).width > maxW && fontSize > minFontSize) {
+            fontSize -= 2;
+            ctx.font = `${fontSize}px 'Gochi Hand', cursive`;
+        }
+
+        // 2. Posicionamiento
+        const x = w * windowCenter.x;
+        const y = h * windowCenter.y;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(-2 * Math.PI / 180); // Rotación -2deg
+
+        // 3. Dibujado (Si sigue siendo muy largo, dividir en 2 líneas)
+        if (ctx.measureText(text).width > maxW && text.includes(' ')) {
+            const words = text.split(' ');
+            const mid = Math.ceil(words.length / 2);
+            const line1 = words.slice(0, mid).join(' ');
+            const line2 = words.slice(mid).join(' ');
+
+            ctx.fillText(line1, 0, -fontSize * 0.6);
+            ctx.fillText(line2, 0, fontSize * 0.6);
+        } else {
+            ctx.fillText(text, 0, 0);
+        }
+
+        ctx.restore();
     }
 
     initDrawingEvents() {
@@ -129,13 +212,12 @@ export class CanvasEngine {
         const { x, y } = this.getPos(e);
         const ctx = this.ctx;
 
-        // Borrar vaho (dedo)
         ctx.globalCompositeOperation = 'destination-out';
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 10;
         ctx.shadowColor = 'black';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.lineWidth = 35;
+        ctx.lineWidth = 30;
 
         ctx.lineTo(x, y);
         ctx.stroke();
