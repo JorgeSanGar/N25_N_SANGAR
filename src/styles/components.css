@@ -1,0 +1,188 @@
+/* CAPA 1: FONDO */
+#background-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/assets/images/background.png');
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+}
+
+/* CAPA 2: CANVAS */
+canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    touch-action: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* CAPA 3: SETUP SCREEN */
+#setup-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(15px);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Typography & Layout */
+.brand-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.brand-title {
+    font-size: 2.25rem;
+    font-weight: 900;
+    color: white;
+    font-style: italic;
+    letter-spacing: -0.05em;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
+.brand-underline {
+    height: 0.25rem;
+    width: 5rem;
+    background-color: #dc2626;
+    margin: 0 auto 1.5rem auto;
+    border-radius: 9999px;
+}
+
+.brand-copy {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.125rem;
+    line-height: 1.375;
+    max-width: 90%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.highlight {
+    color: #f87171;
+    font-weight: 700;
+}
+
+.suggestions-container {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    scrollbar-width: none;
+}
+
+.suggestions-container::-webkit-scrollbar {
+    display: none;
+}
+
+.option-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.option-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.98);
+}
+
+.main-input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #fff;
+    color: #fff;
+    font-size: 24px;
+    font-family: var(--font-hand);
+    width: 100%;
+    padding: 10px 0;
+    margin: 20px 0;
+    text-align: center;
+    outline: none;
+    border-radius: 0;
+}
+
+.main-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+    font-family: var(--font-ui);
+    font-size: 16px;
+}
+
+.cta-button {
+    background: var(--color-primary);
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 18px;
+    border-radius: 50px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.5);
+    border: none;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.cta-button.whatsapp {
+    background-color: #16a34a;
+    box-shadow: 0 10px 25px -5px rgba(22, 163, 74, 0.5);
+}
+
+/* CAPA 4: RESULT UI */
+#result-ui {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    z-index: 40;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s 0.5s;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.noise {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 11;
+    opacity: 0.12;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}

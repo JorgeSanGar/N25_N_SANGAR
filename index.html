@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neumáticos Sangar</title>
+    <!-- No CSS imports here, handled by main.js -->
+</head>
+<body>
+
+<div id="app-wrapper">
+    
+    <!-- PANTALLA 1: CONFIGURACIÓN (LANDING) -->
+    <div id="setup-screen">
+        <div class="mt-8 text-center">
+            <!-- Branding -->
+            <p class="brand-label">Felicitación Navideña</p>
+            <h1 class="brand-title">NEUMÁTICOS SANGAR</h1>
+            <div class="brand-underline"></div>
+            
+            <!-- Copy -->
+            <p class="brand-copy">
+                Este año, lo importante es lo que ocurre <span class="highlight">dentro</span> del coche.
+            </p>
+            <p class="brand-copy" style="font-size: 0.875rem; margin-top: 0.5rem; opacity: 0.6;">
+                Te lo ponemos fácil para compartir tu amor. Escribe tu mensaje y aparecerá en el cristal empañado.
+            </p>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; max-width: 24rem; margin: 0 auto;">
+            <!-- Sugerencias -->
+            <div class="suggestions-container">
+                <button data-text="Te quiero" class="option-btn">Te quiero ❤️</button>
+                <button data-text="Feliz Navidad" class="option-btn">Feliz Navidad 🎄</button>
+                <button data-text="Te quiero ver ya" class="option-btn">Te quiero ver ya ✨</button>
+            </div>
+
+            <!-- Input Principal -->
+            <div class="relative">
+                <input type="text" id="msgInput" class="main-input" placeholder="Escribe tu frase aquí..." maxlength="25" autocomplete="off">
+                <p class="text-center" style="color: rgba(255,255,255,0.4); font-size: 0.75rem;">Máximo 25 caracteres</p>
+            </div>
+        </div>
+
+        <!-- CTA Principal -->
+        <button id="generateBtn" class="cta-button">
+            <span>Escribir en el cristal</span>
+            <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </button>
+    </div>
+
+
+    <!-- PANTALLA 2: EXPERIENCIA (VISUAL) -->
+    <div id="background-layer"></div>
+    <canvas id="fogCanvas"></canvas>
+    <div class="noise"></div>
+
+    <!-- UI Inferior -->
+    <div id="result-ui">
+        <p style="color: rgba(255,255,255,0.7); font-size: 0.875rem; font-weight: 500; text-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 0.5rem;">
+            Así lo verá esa persona 👇
+        </p>
+        
+        <button id="shareBtn" class="cta-button whatsapp">
+            <svg style="width: 1.5rem; height: 1.5rem;" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.23-.298.347-.497.119-.198.06-.371-.03-.504-.089-.132-.875-2.117-1.2-2.9-.315-.765-.632-.656-.874-.666-.232-.01-.497-.01-.762-.01-.265 0-.693.099-1.056.495-.363.396-1.391 1.358-1.391 3.313 0 1.954 1.423 3.844 1.621 4.111.198.267 2.802 4.276 6.788 6.002.949.412 1.69.659 2.27.843.955.303 1.825.26 2.508.158.765-.114 1.758-.718 2.006-1.411.248-.694.248-1.289.173-1.412-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            Enviar por WhatsApp
+        </button>
+        <button id="resetBtn" style="color: rgba(255,255,255,0.5); font-size: 0.875rem; font-weight: 700; margin-top: 0.5rem; padding-bottom: 1rem; background: none; border: none; cursor: pointer;">Crear otra</button>
+    </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

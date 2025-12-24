@@ -1,0 +1,8 @@
+.slide-out {
+    transform: translateY(-100%) !important;
+}
+
+.show-result-ui {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
